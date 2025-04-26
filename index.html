@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Bio-based Material Selection Tool</title>
+	<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<!-- SheetJS for Excel parsing -->
+	<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
+	<!-- Splash Screen -->
+	<div id="splash-screen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
+		<img src="assets/bg.jpg" alt="Splash Image" class="mb-6" />
+		<!-- Intro Text -->
+		<div class="max-w-2xl text-gray-700 space-y-4 mb-8 p-10 pb-0">
+			<p>Bio-based materials are derived from renewable natural resources like plants and agricultural
+				by-products. They offer eco-friendly alternatives to traditional building materials, reducing carbon
+				emissions and supporting a more sustainable construction industry.</p>
+			<p>This tool helps you find the most suitable bio-based construction materials for your project. By
+				selecting your region, house type, application area, and project goals, you’ll receive tailored material
+				suggestions, prioritized by their CO₂ emissions to promote greener building practices.</p>
+		</div>
+
+		<button id="start-button" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg text-lg">
+			Start
+		</button>
+	</div>
+
+	<div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+
+		<!-- Phase 1: Region -->
+		<div id="phase-1" class="phase">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 1: Select Your Region</h1>
+			<div class="relative w-full">
+				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/BlankMap-World.svg/2754px-BlankMap-World.svg.png"
+					alt="World Map" class="w-full rounded-xl" />
+				<div id="region-overlay" class="absolute inset-0">
+					<div data-region="Europe" data-title="Europe"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:17%; left:51%"></div>
+					<div data-region="North America" data-title="North America"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:25%; left:20%"></div>
+					<div data-region="South America" data-title="South America"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:55%; left:30%"></div>
+					<div data-region="Asia" data-title="Asia"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:18%; left:70%"></div>
+					<div data-region="Africa" data-title="Africa"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:45%; left:52%"></div>
+					<div data-region="Middle East" data-title="Middle East"
+						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
+						style="top:30%; left:57%"></div>
+				</div>
+			</div>
+			<div id="selected-region-text" class="mt-6 text-xl text-green-700 font-semibold text-center">
+				No region selected
+			</div>
+		</div>
+
+		<!-- Phase 2: House Type -->
+		<div id="phase-2" class="phase hidden">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 2: House Type</h1>
+			<p class="text-center text-gray-700 mb-6">Would you prefer a house that's mostly bio-based or only partially
+				made with bio-based materials?</p>
+			<div class="flex justify-center gap-8">
+				<div class="house-option cursor-pointer border-4 border-transparent rounded-lg py-4 transition hover:border-green-400"
+					data-type="Mostly bio-based">
+					<p class="text-green-700 mb-4 font-medium text-center">Mostly bio‑based</p>
+					<img src="assets/bio-based-house.png" alt="Mostly bio‑based"
+						class="w-64 h-40 object-contain rounded-lg mx-auto" />
+				</div>
+				<div class="house-option cursor-pointer border-4 border-transparent rounded-lg py-4 transition hover:border-green-400"
+					data-type="Partially bio-based">
+					<p class="text-green-700 mb-4 font-medium text-center">Partially bio‑based</p>
+					<img src="assets/partially-bio-based-house.png" alt="Partially bio‑based"
+						class="w-64 h-40 object-contain rounded-lg mx-auto" />
+				</div>
+			</div>
+			<div id="mostly-bio-notes" class="mt-6 space-y-4 hidden">
+				<div class="flex items-start gap-4 bg-gray-100 p-4 rounded-lg shadow">
+					<img src="assets/house-floors.png" class="w-8 h-8" alt="Note" />
+					<p class="text-gray-600">For mid‑ & high‑rise buildings, fully timber‑based houses are the only
+						option.</p>
+				</div>
+				<div class="flex items-start gap-4 bg-gray-100 p-4 rounded-lg shadow">
+					<img src="assets/house-floors2.png" class="w-8 h-8" alt="Note" />
+					<p class="text-gray-600">This applies only to low‑rise buildings (1–2 floors).</p>
+				</div>
+				<div class="flex items-center gap-2">
+					<input type="checkbox" id="acknowledge-checkbox" class="form-checkbox h-5 w-5 text-green-600" />
+					<label for="acknowledge-checkbox" class="text-gray-700 text-sm">
+						I have read and understood the notes above.
+					</label>
+				</div>
+			</div>
+		</div>
+
+		<!-- Phase 3: Area of Application -->
+		<div id="phase-3" class="phase hidden">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 3: Area of Application</h1>
+			<p class="text-center text-gray-700 mb-4">Where do you want to apply the material?</p>
+			<div class="grid grid-cols-5 grid-rows-2 gap-6 px-6">
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Footing">
+					<img src="assets/2-footing.png" class="mx-auto mb-2 w-16 h-16" alt="Footing" />
+					Footing
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Structure">
+					<img src="assets/2-structure.png" class="mx-auto mb-2 w-16 h-16" alt="Structure" />
+					Structure
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Slabs">
+					<img src="assets/2-slabs.png" class="mx-auto mb-2 w-16 h-16" alt="Slabs" />
+					Slabs
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Ext. wall">
+					<img src="assets/3-extwall.png" class="mx-auto mb-2 w-16 h-16" alt="Ext. wall" />
+					Ext. wall
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Int. wall">
+					<img src="assets/2-intwall.png" class="mx-auto mb-2 w-16 h-16" alt="Int. wall" />
+					Int. wall
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Insulation">
+					<img src="assets/2-insulation.png" class="mx-auto mb-2 w-16 h-16" alt="Insulation" />
+					Insulation
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Cladding">
+					<img src="assets/2-cladding.png" class="mx-auto mb-2 w-16 h-16" alt="Cladding" />
+					Cladding
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Flooring">
+					<img src="assets/2-flooring.png" class="mx-auto mb-2 w-16 h-16" alt="Flooring" />
+					Flooring
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Roof">
+					<img src="assets/2-roof.png" class="mx-auto mb-2 w-16 h-16" alt="Roof" />
+					Roof
+				</div>
+				<div class="area-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-area="Finish">
+					<img src="assets/2-finish.png" class="mx-auto mb-2 w-16 h-16" alt="Finish" />
+					Finish
+				</div>
+			</div>
+		</div>
+
+		<!-- Phase 4: Goals / Needs -->
+		<div id="phase-4" class="phase hidden">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 4: Goals / Needs</h1>
+			<p class="text-center text-gray-700 mb-4">Pick between <strong>1</strong> and <strong>3</strong> goals to be
+				achieved:</p>
+			<div class="grid grid-cols-4 grid-rows-2 gap-6 px-6">
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Affordability">
+					<img src="assets/1-aff.png" class="mx-auto mb-2 w-16 h-16" alt="Affordability" />
+					Affordability
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Safety">
+					<img src="assets/2-safety.png" class="mx-auto mb-2 w-16 h-16" alt="Safety" />
+					Safety
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Thermal comfort">
+					<img src="assets/3-thermal.png" class="mx-auto mb-2 w-16 h-16" alt="Thermal comfort" />
+					Thermal comfort
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Noise Control">
+					<img src="assets/4-noise_control.png" class="mx-auto mb-2 w-16 h-16" alt="Noise Control" />
+					Noise Control
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Aesthetics">
+					<img src="assets/7-aesth.png" class="mx-auto mb-2 w-16 h-16" alt="Aesthetics" />
+					Aesthetics
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Fast Construction">
+					<img src="assets/5-speed.png" class="mx-auto mb-2 w-16 h-16" alt="Fast Construction" />
+					Fast Construction
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Energy Efficiency">
+					<img src="assets/6-energy.png" class="mx-auto mb-2 w-16 h-16" alt="Energy Efficiency" />
+					Energy Efficiency
+				</div>
+				<div class="goal-option p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg cursor-pointer hover:border-green-400"
+					data-goal="Breathability">
+					<img src="assets/8-breath.png" class="mx-auto mb-2 w-16 h-16" alt="Breathability" />
+					Breathability
+				</div>
+			</div>
+		</div>
+
+		<!-- Phase 5: Suggested Materials -->
+		<div id="phase-5" class="phase hidden">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 5: Suggested Materials</h1>
+			<p class="text-center text-gray-700 mb-4">Here are the materials based on your selection:</p>
+			<div id="materials-grid" class="grid grid-cols-3 gap-6 px-6">
+				<!-- dynamically injected material cards -->
+			</div>
+			<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mt-4" role="alert">
+				<p>Click next to calculate the CO₂ emissions of the suggested materials.</p>
+			</div>
+		</div>
+
+		<!-- Phase 6: CO₂ emissions of suggested materials -->
+		<div id="phase-6" class="phase hidden w-full px-6">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 6: CO₂ Emissions of Suggested Materials
+			</h1>
+
+			<!-- Wrapper for overview -->
+			<div id="materials-overview-wrapper" class="hidden relative">
+				<div id="loading-spinner"
+					class="inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10 mt-10">
+					<div class="flex flex-col items-center justify-center">
+						<div class="spinner mb-4"></div>
+						<div class="text-green-700 text-lg font-semibold">Processing...</div>
+					</div>
+				</div>
+
+				<style>
+					@keyframes spin {
+						to {
+							transform: rotate(360deg);
+						}
+					}
+
+					.spinner {
+						height: 80px;
+						width: 80px;
+						border: 8px solid #38a169;
+						border-top-color: transparent;
+						border-radius: 50%;
+						animation: spin 1s linear infinite;
+						transition: height 0.6s ease, opacity 0.6s ease;
+						/* NEW */
+					}
+				</style>
+
+				<!-- Material List -->
+				<div id="materials-overview"
+					class="flex flex-col divide-y divide-gray-200 bg-white rounded-lg shadow overflow-hidden">
+					<!-- dynamic rows injected here -->
+				</div>
+			</div>
+		</div>
+
+
+		<!-- Navigation Buttons -->
+		<div class="flex justify-between mt-10">
+			<button id="prev-btn" class="bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed"
+				disabled>Previous</button>
+			<button id="next-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">
+				Next
+			</button>
+		</div>
+	</div>
+
+	<script>
+		$(document).ready(function () {
+			$('#splash-screen').show();
+			$('.w-full.max-w-4xl').hide(); // Hide only the container, not the phases manually
+
+			$('#start-button').on('click', function () {
+				$('#splash-screen').fadeOut(500, function () {
+					$('.w-full.max-w-4xl').fadeIn(500); // Only show the container
+					showPhase(1); // Then internally, showPhase will control which phase appears
+				});
+			});
+		});
+	</script>
+
+	<script>
+		let currentPhase = 1;
+		const userSelections = {
+			region: null,
+			houseType: null,
+			application: null,
+			goals: [],
+			suggestions: []
+		};
+
+		function showPhase(p) {
+			$('.phase').addClass('hidden');
+			$('#phase-' + p).removeClass('hidden');
+			$('#prev-btn')
+				.prop('disabled', p === 1)
+				.toggleClass('cursor-not-allowed bg-gray-400', p === 1)
+				.toggleClass('cursor-pointer bg-green-600 hover:bg-green-700', p !== 1);
+			$('#next-btn').text(p < 6 ? 'Next' : 'Finish');
+			updateNextButtonState();
+		}
+
+		function updateNextButtonState() {
+			let ok = true;
+			switch (currentPhase) {
+				case 1:
+					ok = !!userSelections.region;
+					break;
+				case 2:
+					ok = !!userSelections.houseType &&
+						(userSelections.houseType === 'Partially bio-based'
+							|| $('#acknowledge-checkbox').is(':checked'));
+					break;
+				case 3:
+					ok = !!userSelections.application;
+					break;
+				case 4:
+					ok = userSelections.goals.length >= 1 && userSelections.goals.length <= 3;
+					break;
+				case 5:
+				case 6:
+					ok = true;
+					break;
+			}
+			$('#next-btn')
+				.prop('disabled', !ok)
+				.toggleClass('cursor-not-allowed bg-gray-400', !ok)
+				.toggleClass('cursor-pointer bg-green-600 hover:bg-green-700', ok);
+		}
+
+		// Phase 1: Region
+		$('#region-overlay div').on('click', function () {
+			$('#region-overlay div').removeClass('ring-4 ring-green-400');
+			$(this).addClass('ring-4 ring-green-400');
+			userSelections.region = $(this).data('region');
+			$('#selected-region-text').text(`Selected region: ${$(this).data('title')}`);
+			updateNextButtonState();
+		});
+
+		// Phase 2: House Type
+		$('.house-option').on('click', function () {
+			$('.house-option').removeClass('border-green-500');
+			$(this).addClass('border-green-500');
+			userSelections.houseType = $(this).data('type');
+			$('#mostly-bio-notes').toggleClass('hidden', userSelections.houseType !== 'Mostly bio-based');
+			updateNextButtonState();
+		});
+		$(document).on('change', '#acknowledge-checkbox', updateNextButtonState);
+
+		// Phase 3: Application
+		$(document).on('click', '.area-option', function () {
+			$('.area-option').removeClass('border-green-500');
+			$(this).addClass('border-green-500');
+			userSelections.application = $(this).data('area');
+			updateNextButtonState();
+		});
+
+		// Phase 4: Goals
+		$(document).on('click', '.goal-option', function () {
+			const g = $(this).data('goal');
+			const idx = userSelections.goals.indexOf(g);
+			if (idx > -1) {
+				userSelections.goals.splice(idx, 1);
+				$(this).removeClass('border-green-500');
+			} else if (userSelections.goals.length < 3) {
+				userSelections.goals.push(g);
+				$(this).addClass('border-green-500');
+			} else {
+				alert('You can select up to 3 goals.');
+			}
+			updateNextButtonState();
+		});
+
+		// Fetch & filter materials
+		async function fetchSuggestedMaterials(sel) {
+			const resp = await fetch('database.xlsx');
+			const data = await resp.arrayBuffer();
+			const wb = XLSX.read(data, { type: 'array' });
+			const ws = wb.Sheets[wb.SheetNames[0]];
+			const rows = XLSX.utils.sheet_to_json(ws);
+
+			const regionKey = sel.region.includes('America') ? 'America' : sel.region;
+			const typeKey = sel.houseType.startsWith('Mostly') ? 'Mostly' : 'Partially';
+			const isMostly = typeKey === 'Mostly';
+
+			let filtered = rows.filter(r =>
+				r.Region.includes(regionKey) &&
+				r.Type.trim() === typeKey
+			);
+
+			if (!isMostly && sel.application) {
+				filtered = filtered.filter(r =>
+					String(r.Application).trim().toLowerCase() === sel.application.toLowerCase().trim()
+				);
+			}
+
+			const normalize = str =>
+				String(str)
+					.toLowerCase()
+					.replace(/effeciency/g, 'efficiency')
+					.replace(/noise\s*control/g, 'noise control')
+					.trim();
+
+			if (sel.goals.length) {
+				sel.goals.forEach(goal => {
+					filtered = filtered.filter(r =>
+						normalize(r.Goal).includes(normalize(goal))
+					);
+				});
+			}
+
+			return [...new Set(filtered.map(r => ({
+				name: r.Materials,
+				img: r.Img ? `${r.Img.trim()}.jpg` : null,
+				co2: parseFloat(r.CO2) || null // important: parse CO2 as number
+			})))];
+		}
+
+		// Navigation Buttons
+		$('#next-btn').on('click', async () => {
+			if (currentPhase < 4) {
+				if (currentPhase === 2) {
+					currentPhase = (userSelections.houseType === 'Mostly bio-based') ? 4 : 3;
+				} else {
+					currentPhase++;
+				}
+				showPhase(currentPhase);
+
+			} else if (currentPhase === 4) {
+				const list = await fetchSuggestedMaterials(userSelections);
+				userSelections.suggestions = list;
+				currentPhase = 5;
+				showPhase(currentPhase);
+
+				const $grid = $('#materials-grid').empty();
+				if (list.length) {
+					list.forEach(mat => {
+						const imgSrc = `assets/materials/${mat.img}`;
+						$grid.append(`
+				  <div class="material-card p-4 w-40 text-center font-medium text-green-700 border-4 border-transparent rounded-lg">
+					<img src="${imgSrc}" alt="${mat.name}" class="mx-auto mb-2 w-16 h-16" />
+					<p>${mat.name}</p>
+				  </div>
+				`);
+					});
+				} else {
+					$grid.append('<p class="text-gray-600 col-span-3">No matching materials found.</p>');
+				}
+
+			} else if (currentPhase === 5) {
+				currentPhase = 6;
+				showPhase(currentPhase);
+
+				const $overviewWrapper = $('#materials-overview-wrapper').hide();
+				const $overview = $('#materials-overview').empty();
+				const $loadingSpinner = $('#loading-spinner');
+
+				if (userSelections.suggestions.length) {
+					// Step 1: Always sort by CO₂ emission ascending
+					const sortedByCO2 = [...userSelections.suggestions]
+						.filter(m => m.co2 !== null)
+						.sort((a, b) => a.co2 - b.co2);
+
+					const n = sortedByCO2.length;
+					const lowMax = Math.floor(n / 3);
+					const medMax = Math.floor((2 * n) / 3);
+
+					// Step 2: Assign labels, FLIPPED for partially bio-based
+					const materialsWithLabels = sortedByCO2.map((mat, idx, arr) => {
+						let emissionLevel = 'Unknown';
+						if (userSelections.houseType === 'Partially bio-based') {
+							// FLIP: largest CO₂ = Low Emission, smallest CO₂ = High Emission
+							const flippedIdx = (arr.length - 1) - idx; // Reverse the index
+							if (flippedIdx < lowMax) emissionLevel = 'Lowest CO₂ Emission';
+							else if (flippedIdx < medMax) emissionLevel = 'Moderate CO₂ Emission';
+							else emissionLevel = 'Highest CO₂ Emission';
+						} else {
+							// Normal logic for Mostly bio-based
+							if (idx < lowMax) emissionLevel = 'Low CO₂ Emission';
+							else if (idx < medMax) emissionLevel = 'Moderate CO₂ Emission';
+							else emissionLevel = 'Highest CO₂ Emission';
+						}
+						return { ...mat, emissionLevel };
+					});
+
+					// Step 3: Sort by label priority: Low → Medium → High
+					const priority = {
+						'Low CO₂ Emission': 1,
+						'Medium CO₂ Emission': 2,
+						'High CO₂ Emission': 3,
+						'Unknown': 99
+					};
+
+					const finalSortedMaterials = materialsWithLabels.sort((a, b) => {
+						return priority[a.emissionLevel] - priority[b.emissionLevel];
+					});
+
+					if (userSelections.houseType === 'Partially bio-based') {
+						finalSortedMaterials.reverse(); // Reverse the order for partially bio-based
+					}
+
+					// Step 4: Show the results
+					$overviewWrapper.fadeIn(300);
+
+					setTimeout(() => {
+						const $spinner = $('#loading-spinner .spinner');
+						const $loadingWrapper = $('#loading-spinner');
+
+						// Shrink spinner first
+						$spinner.css({ height: '0px', opacity: '0' });
+
+						// Then fade out wrapper after shrink
+						setTimeout(() => {
+							$loadingWrapper.fadeOut(300);
+						}, 600);
+
+						finalSortedMaterials.forEach((mat, idx) => {
+							const imgSrc = userSelections.houseType === 'Partially bio-based'
+								? `assets/materials/${mat.img}`
+								: `assets/materials/houses/${mat.img}`;
+
+							const $row = $(`
+							<div class="opacity-0 transform translate-y-4 transition-all duration-500 flex items-center justify-between px-6 py-5">
+							<!-- Column 1: Index -->
+							<div class="w-1/12 text-gray-500 font-bold text-lg">#${idx + 1}</div>
+
+							<!-- Column 2: Image + Name -->
+							<div class="w-7/12 flex items-center gap-4">
+								<img src="${imgSrc}" alt="${mat.name}" class="w-16 h-16 object-contain rounded shadow" />
+								<div class="text-green-700 font-semibold text-lg">${mat.name}</div>
+							</div>
+
+							<!-- Column 3: Emission -->
+							<div class="w-4/12 text-gray-600 font-medium text-right" title="(${mat.co2})">${mat.emissionLevel}</div>
+							</div>
+						`);
+
+							setTimeout(() => {
+								$overview.append($row);
+								requestAnimationFrame(() => {
+									$row.removeClass('opacity-0 translate-y-4');
+								});
+							}, idx * 1000);
+						});
+
+					}, 1500);
+
+				} else {
+					$overview.append('<div class="text-gray-600 text-center py-8">No material details available.</div>');
+					$overviewWrapper.fadeIn(500);
+				}
+
+
+
+
+			} else {
+				console.log('All selections completed:', userSelections);
+			}
+		});
+
+		$('#prev-btn').on('click', () => {
+			if (currentPhase > 1) {
+				currentPhase--;
+				showPhase(currentPhase);
+				if (currentPhase < 5) {
+					$('#materials-grid').empty();
+				}
+			}
+		});
+
+		// Initialize
+		showPhase(1);
+	</script>
+</body>
+
+</html>
