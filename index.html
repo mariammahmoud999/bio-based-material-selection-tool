@@ -216,7 +216,7 @@
 			<div id="materials-grid" class="grid grid-cols-3 gap-6 px-6">
 				<!-- dynamically injected material cards -->
 			</div>
-			<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mt-4" role="alert">
+			<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mt-4 next-calculate-alert" role="alert">
 				<p>Click next to calculate the CO₂ emissions of the suggested materials.</p>
 			</div>
 		</div>
@@ -263,6 +263,22 @@
 			</div>
 		</div>
 
+		<!-- Phase 7: Finish -->
+		<div id="phase-7" class="phase hidden w-full px-6">
+			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Thank You!</h1>
+			<p class="text-center text-gray-700 text-lg mb-8">
+				Thank you for using the Material Selection Tool!<br>
+				We’d really appreciate your feedback — please take a moment to fill out the questionnaire to assess the
+				tool's usability for future improvements.
+			</p>
+			<div class="flex justify-center">
+				<a href="https://form.typeform.com/to/ayHk1KWy" target="_blank"
+					class="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-lg text-lg">
+					Give Feedback
+				</a>
+			</div>
+		</div>
+
 
 		<!-- Navigation Buttons -->
 		<div class="flex justify-between mt-10">
@@ -305,7 +321,7 @@
 				.prop('disabled', p === 1)
 				.toggleClass('cursor-not-allowed bg-gray-400', p === 1)
 				.toggleClass('cursor-pointer bg-green-600 hover:bg-green-700', p !== 1);
-			$('#next-btn').text(p < 6 ? 'Next' : 'Finish');
+			$('#next-btn').text(p < 7 ? (p < 6 ? 'Next' : 'Finish') : 'Done');
 			updateNextButtonState();
 		}
 
@@ -452,8 +468,18 @@
 				  </div>
 				`);
 					});
+					$('#next-btn')
+						.prop('disabled', false)
+						.removeClass('cursor-not-allowed bg-gray-400')
+						.addClass('cursor-pointer bg-green-600 hover:bg-green-700');
+					$('.next-calculate-alert').removeClass('hidden');
 				} else {
-					$grid.append('<p class="text-gray-600 col-span-3">No matching materials found.</p>');
+					$grid.append('<p class="text-gray-600 col-span-3">No matching materials found. Go back and try again.</p>');
+					$('#next-btn')
+						.prop('disabled', true)
+						.removeClass('cursor-pointer bg-green-600 hover:bg-green-700')
+						.addClass('cursor-not-allowed bg-gray-400');
+					$('.next-calculate-alert').addClass('hidden');
 				}
 
 			} else if (currentPhase === 5) {
@@ -559,12 +585,15 @@
 					$overviewWrapper.fadeIn(500);
 				}
 
-
-
-
+			} else if (currentPhase === 6) {
+				currentPhase = 7;
+				showPhase(currentPhase);
+				$('#next-btn').hide();
+				$('#prev-btn').hide();
 			} else {
 				console.log('All selections completed:', userSelections);
 			}
+
 		});
 
 		$('#prev-btn').on('click', () => {
