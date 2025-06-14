@@ -5,10 +5,10 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Bio-based Material Selection Tool</title>
-	<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link href="assets/css/tailwind.min.css" rel="stylesheet" />
+	<script src="assets/js/jquery-3.6.0.min.js"></script>
 	<!-- SheetJS for Excel parsing -->
-	<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+	<script src="assets/js/xlsx.full.min.js"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
@@ -36,8 +36,7 @@
 		<div id="phase-1" class="phase">
 			<h1 class="text-2xl font-bold mb-6 text-green-700 text-center">Phase 1: Select Your Region</h1>
 			<div class="relative w-full">
-				<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/BlankMap-World.svg/2754px-BlankMap-World.svg.png"
-					alt="World Map" class="w-full rounded-xl" />
+				<img src="assets/BlankMap-World.svg.png" alt="World Map" class="w-full rounded-xl" />
 				<div id="region-overlay" class="absolute inset-0">
 					<div data-region="Europe" data-title="Europe"
 						class="absolute w-5 h-5 bg-green-600 hover:bg-green-500 rounded-full cursor-pointer"
@@ -216,7 +215,8 @@
 			<div id="materials-grid" class="grid grid-cols-3 gap-6 px-6">
 				<!-- dynamically injected material cards -->
 			</div>
-			<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mt-4 next-calculate-alert" role="alert">
+			<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mt-4 next-calculate-alert"
+				role="alert">
 				<p>Click next to calculate the CO₂ emissions of the suggested materials.</p>
 			</div>
 		</div>
@@ -303,6 +303,7 @@
 			});
 		});
 	</script>
+	<script src="material-database.js"></script>
 
 	<script>
 		let currentPhase = 1;
@@ -398,11 +399,7 @@
 
 		// Fetch & filter materials
 		async function fetchSuggestedMaterials(sel) {
-			const resp = await fetch('database.xlsx');
-			const data = await resp.arrayBuffer();
-			const wb = XLSX.read(data, { type: 'array' });
-			const ws = wb.Sheets[wb.SheetNames[0]];
-			const rows = XLSX.utils.sheet_to_json(ws);
+			const rows = materialDatabase; // loaded from material-database.js
 
 			const regionKey = sel.region.includes('America') ? 'America' : sel.region;
 			const typeKey = sel.houseType.startsWith('Mostly') ? 'Mostly' : 'Partially';
